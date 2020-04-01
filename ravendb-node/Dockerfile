@@ -1,21 +1,16 @@
-FROM ravendb/ravendb
+FROM ravendb/ravendb:4.2.102-ubuntu.18.04-x64
 
 # update the repository sources list
 # and install dependencies
-RUN groupadd --gid 1000 node \
-    && useradd --uid 1000 --gid node --shell /bin/bash --create-home node \
-    && chown -R node:node /opt/RavenDB/Server \
-    && chmod -R 777 /opt/RavenDB/Server \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install -y curl gnupg2 \
     && apt-get -y autoclean
 
 # nvm environment variables
-USER node
-ENV NVM_DIR /home/node/nvm
+ENV NVM_DIR /root/nvm
 ENV NODE_VERSION 12.16.1
 ENV YARN_VERSION 1.21.1
-ENV RAVEN_DataDir=/home/node/ravenData
+ENV RAVEN_DataDir=/root/ravenData
 
 RUN mkdir -p $NVM_DIR && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 
@@ -27,6 +22,7 @@ ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 RUN /bin/bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm alias default $NODE_VERSION && nvm use default"
 
 RUN curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version $YARN_VERSION
+ENV PATH /root/.yarn/bin/:$PATH
 
 COPY entrypoint.sh /usr/bin/
 ENTRYPOINT ["entrypoint.sh"]
